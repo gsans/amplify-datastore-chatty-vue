@@ -327,7 +327,8 @@ import { Chatty } from "./models";
 
 await DataStore.save(new Chatty({
   user: "amplify-user",
-  message: "Hi everyone!"
+  message: "Hi everyone!",
+  createdAt: new Date().toISOString()
 }))
 ```
 
@@ -426,7 +427,8 @@ export default {
       if (!message) return;
       DataStore.save(new Chatty({
         user: this.user.username,
-        message: message
+        message: message,
+        createdAt: new Date().toISOString()
       })).then(() => {
         this.form = { message: '' };
         this.loadMessages();
