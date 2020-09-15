@@ -15,8 +15,8 @@ In this workshop we'll learn how to use Amplify DataStore to create `Chatty` a s
 
 ## Pre-requisites
 
-- Node: `13.13.0`. Visit [Node](https://nodejs.org/en/download/current/)
-- npm: `6.14.4`. Packaged with Node otherwise run upgrade
+- Node: `14.7.0`. Visit [Node](https://nodejs.org/en/download/current/)
+- npm: `6.14.7`. Packaged with Node otherwise run upgrade
 
 ```bash
 npm install -g npm
@@ -48,7 +48,7 @@ npm run serve
 Let's now install the AWS Amplify API & AWS Amplify Vue library:
 
 ```bash
-npm install --save aws-amplify aws-amplify-vue moment
+npm install --save aws-amplify @aws-amplify/ui-vue moment
 ```
 > If you have issues related to EACCESS try using sudo: `sudo npm <command>`.
 
@@ -157,12 +157,14 @@ The first thing we need to do is to configure our Vue application to be aware of
 To configure the app, open __main.js__ and add the following code below the last import:
 
 ```js
-import Amplify, * as AmplifyModules from 'aws-amplify'
-import { AmplifyPlugin } from 'aws-amplify-vue'
-import awsconfig from './aws-exports'
-Amplify.configure(awsconfig)
+import Vue from 'vue'
+import App from './App.vue'
 
-Vue.use(AmplifyPlugin, AmplifyModules)
+import Amplify from 'aws-amplify';
+import '@aws-amplify/ui-vue';
+import aws_exports from './aws-exports';
+
+Amplify.configure(aws_exports);
 
 Vue.config.productionTip = false
 
@@ -173,7 +175,7 @@ new Vue({
 
 Now, our app is ready to start using our AWS services.
 
-### Using the Authenticator component
+### Using the Authenticator Component
 
 AWS Amplify provides UI components that you can use in your App. Let's add these components to the project
 
@@ -182,7 +184,12 @@ In order to use the Authenticator Component add it to __src/App.vue__:
 ```html
 <template>
   <div id="app">
-    <amplify-authenticator></amplify-authenticator>
+    <amplify-authenticator>
+      <div>
+        <h1>Hey, {{user.username}}!</h1>
+        <amplify-sign-out></amplify-sign-out>
+      </div>
+    </amplify-authenticator>
   </div>
 </template>
 ```
@@ -197,13 +204,13 @@ Alternatively we can also use
 amplify console auth
 ```
 
-### Accessing user data
+### Accessing User Data
 
-We can access the user's info now that they are signed in by calling `currentAuthenticatedUser()` which returns a Promise.
+By listening to authentication state changes using `onAuthUIStateChange` we can access the user's info once they are signed in as shown below.
 
 ```js
 <script>
-import { Auth } from 'aws-amplify';
+import { AuthState, onAuthUIStateChange } from '@aws-amplify/ui-components'
 
 export default {
   name: 'app',
@@ -213,11 +220,14 @@ export default {
     }
   },
   created() {
-    Auth.currentAuthenticatedUser().then(user => {
-      this.user = user;
-      console.log(user);
+    // authentication state managament
+    onAuthUIStateChange((state, user) => {
+      // set current user and load data after login
+      if (state === AuthState.SignedIn) {
+        this.user = user;
+      }
     })
-  },
+  }
 }
 </script>
 ```
